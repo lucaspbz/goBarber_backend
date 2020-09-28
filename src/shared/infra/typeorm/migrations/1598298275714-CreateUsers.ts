@@ -1,10 +1,10 @@
 import { MigrationInterface, QueryRunner, Table } from 'typeorm';
 
-export class CreateUsers1598298275714 implements MigrationInterface {
+export default class CreateUsers1598298275714 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
       new Table({
-        //minusculo, plural e separado por underline
+        // minusculo, plural e separado por underline
         name: 'users',
         columns: [
           {
@@ -38,7 +38,7 @@ export class CreateUsers1598298275714 implements MigrationInterface {
             default: 'now()',
           },
         ],
-      })
+      }),
     );
   }
 
