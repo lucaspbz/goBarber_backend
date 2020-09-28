@@ -1,4 +1,4 @@
-//index, show, create, update, delete
+// index, show, create, update, delete
 import { Response, Request } from 'express';
 import { container } from 'tsyringe';
 
@@ -15,8 +15,8 @@ export default class SessionsController {
       password,
     });
 
-    delete user.password;
+    const { password: whatever, ...userWithoutPassword } = user;
 
-    return response.json({ user, token });
+    return response.json({ user: userWithoutPassword, token });
   }
 }
