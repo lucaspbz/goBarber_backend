@@ -1,58 +1,58 @@
-import FakeMailProvider from "@shared/container/providers/MailProvider/fakes/FakeMailProvider";
-import AppError from "@shared/errors/AppError";
-import FakeUsersRepository from "../repositories/fakes/FakeUsersRepository";
-import FakeUserTokensRepository from "../repositories/fakes/FakeUserTokensRepository";
-import SendForgotPasswordEmailService from "./SendForgotPasswordEmailService";
+import FakeMailProvider from '@shared/container/providers/MailProvider/fakes/FakeMailProvider';
+import AppError from '@shared/errors/AppError';
+import FakeUsersRepository from '../repositories/fakes/FakeUsersRepository';
+import FakeUserTokensRepository from '../repositories/fakes/FakeUserTokensRepository';
+import SendForgotPasswordEmailService from './SendForgotPasswordEmailService';
 
 let fakeEmailProvider: FakeMailProvider;
 let fakeUsersRepository: FakeUsersRepository;
 let sendForgotPasswordEmail: SendForgotPasswordEmailService;
 let fakeUsersTokenRepository: FakeUserTokensRepository;
 
-describe("SendForgotPassowrdEmail", () => {
-    beforeEach(() => {
-        fakeEmailProvider = new FakeMailProvider();
-        fakeUsersRepository = new FakeUsersRepository();
-        fakeUsersTokenRepository = new FakeUserTokensRepository();
+describe('SendForgotPassowrdEmail', () => {
+  beforeEach(() => {
+    fakeEmailProvider = new FakeMailProvider();
+    fakeUsersRepository = new FakeUsersRepository();
+    fakeUsersTokenRepository = new FakeUserTokensRepository();
 
-        sendForgotPasswordEmail = new SendForgotPasswordEmailService(
-            fakeUsersRepository,
-            fakeEmailProvider,
-            fakeUsersTokenRepository
-        );
+    sendForgotPasswordEmail = new SendForgotPasswordEmailService(
+      fakeUsersRepository,
+      fakeEmailProvider,
+      fakeUsersTokenRepository,
+    );
+  });
+
+  it('should be able to send a forgot email password', async () => {
+    const sendMail = jest.spyOn(fakeEmailProvider, 'sendMail');
+
+    await fakeUsersRepository.create({
+      name: 'John Doe',
+      email: 'johndoe@example.com',
+      password: '123456',
     });
 
-    it("should be able to send a forgot email password", async () => {
-        const sendMail = jest.spyOn(fakeEmailProvider, "sendMail");
+    await sendForgotPasswordEmail.execute({ email: 'johndoe@example.com' });
 
-        await fakeUsersRepository.create({
-            name: "John Doe",
-            email: "johndoe@example.com",
-            password: "123456",
-        });
+    expect(sendMail).toHaveBeenCalled();
+  });
 
-        await sendForgotPasswordEmail.execute({ email: "johndoe@example.com" });
+  it('should not be able to send a forgot email password to a non-existing user', async () => {
+    await expect(
+      sendForgotPasswordEmail.execute({ email: 'johndoe@example.com' }),
+    ).rejects.toBeInstanceOf(AppError);
+  });
 
-        expect(sendMail).toHaveBeenCalled();
+  it('should generate a forgot password token', async () => {
+    const generateToken = jest.spyOn(fakeUsersTokenRepository, 'generate');
+
+    const user = await fakeUsersRepository.create({
+      name: 'John Doe',
+      email: 'johndoe@example.com',
+      password: '123456',
     });
 
-    it("should not be able to send a forgot email password to a non-existing user", async () => {
-        await expect(
-            sendForgotPasswordEmail.execute({ email: "johndoe@example.com" })
-        ).rejects.toBeInstanceOf(AppError);
-    });
+    await sendForgotPasswordEmail.execute({ email: 'johndoe@example.com' });
 
-    it("should generate a forgot password token", async () => {
-        const generateToken = jest.spyOn(fakeUsersTokenRepository, "generate");
-
-        const user = await fakeUsersRepository.create({
-            name: "John Doe",
-            email: "johndoe@example.com",
-            password: "123456",
-        });
-
-        await sendForgotPasswordEmail.execute({ email: "johndoe@example.com" });
-
-        expect(generateToken).toHaveBeenCalledWith(user.id);
-    });
+    expect(generateToken).toHaveBeenCalledWith(user.id);
+  });
 });
