@@ -1,5 +1,5 @@
-import { sign } from 'jsonwebtoken';
 import authConfig from '@config/auth';
+import { sign } from 'jsonwebtoken';
 import { injectable, inject } from 'tsyringe';
 
 import AppError from '@shared/errors/AppError';
@@ -25,8 +25,8 @@ class AuthenticateUserService {
     private usersRepository: IUsersRepository,
 
     @inject('HashProvider')
-    private hashProvider: IHashProvider
-  ) {}
+    private hashProvider: IHashProvider,
+  ) { }
 
   public async execute({ email, password }: Request): Promise<Response> {
     const user = await this.usersRepository.findByEmail(email);
@@ -37,7 +37,7 @@ class AuthenticateUserService {
 
     const passwordMatched = await this.hashProvider.compareHash(
       password,
-      user.password
+      user.password,
     );
 
     if (!passwordMatched) {
